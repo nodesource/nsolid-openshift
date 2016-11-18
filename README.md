@@ -25,8 +25,7 @@ This repository is for deploying [N|Solid](https://nodesource.com/products/nsoli
             - [Docker](#a18)
             - [OpenShift](#a19)
         - [Accessing your App](#a20)
-    - [Accessing N|Solid OpenShift objects](#a21)
-        - [Setting `nsolid` as the default namespace](#a22)
+    - [Accessing N|Solid object in OpenShift](#a21)
 - [License & Copyright](#a28)
 
 <a name="a1"/>
@@ -261,25 +260,18 @@ A comma seperate list of tags that can be used to filter processes in the N|Soli
 <a name="a20"/>
 #### Accessing your App
 
-```bash
-oc create route passthrough nsolid-console --service nginx-secure-proxy --port=10443
-```
-
-The `EXTERNAL-IP` will access the application.
-
+To access your application outside of the OpenShift cluster, you must create a route to your application.
+You can refer to the `sample-app.route.yml` file as an example for creating it via files, or use the OpenShift
+console to create the route manaully. 
 
 <a name="a21"/>
-### Accessing N|Solid OpenShift objects
+### Accessing N|Solid object in OpenShift
 
-Make sure you use the `--namespace=nsolid` flag on all `oc` commands.
-
-<a name="a22"/>
-#### Setting `nsolid` as the default namespace
+After creating the sample app project, your context is switched to that project. You must switch
+the active project back to nsolid to manage those resources.
 
 ```bash
-oc config current-context // outputs current context
-oc config set-context {$context} --namespace=nsolid // make 'nsolid' the default namespace
-oc config set-context {$context} --namespace=default // revert to default
+oc project nsolid
 ```
 
 <a name="a28" />
