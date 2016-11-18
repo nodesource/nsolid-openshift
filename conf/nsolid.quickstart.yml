@@ -1,8 +1,8 @@
-apiVersion: extensions/v1beta1
-kind: DeploymentList
+apiVersion: v1
+kind: List
 items:
-  - apiVersion: extensions/v1beta1
-    kind: Deployment
+  - apiVersion: v1
+    kind: DeploymentConfig
     metadata:
       namespace: nsolid
       labels:
@@ -34,8 +34,28 @@ items:
               name: data
             - containerPort: 9003
               name: bulk
-  - apiVersion: extensions/v1beta1
-    kind: Deployment
+            readinessProbe:
+              httpGet:
+                path: /api/v1/license-info
+                port: 4000
+                scheme: HTTPS
+              initialDelaySeconds: 4
+              timeoutSeconds: 1
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 3
+            livenessProbe:
+              httpGet:
+                path: /api/v1/license-info
+                port: 4000
+                scheme: HTTPS
+              initialDelaySeconds: 10
+              timeoutSeconds: 1
+              periodSeconds: 10
+              successThreshold: 1
+              failureThreshold: 3
+  - apiVersion: v1
+    kind: DeploymentConfig
     metadata:
       namespace: nsolid
       name: console
@@ -57,8 +77,28 @@ items:
               ports:
                 - containerPort: 3000
                   name: console
-  - apiVersion: extensions/v1beta1
-    kind: Deployment
+              readinessProbe:
+                httpGet:
+                  path: /
+                  port: 3000
+                  scheme: HTTP
+                initialDelaySeconds: 1
+                timeoutSeconds: 1
+                periodSeconds: 10
+                successThreshold: 1
+                failureThreshold: 3
+              livenessProbe:
+                httpGet:
+                  path: /
+                  port: 3000
+                  scheme: HTTP
+                initialDelaySeconds: 1
+                timeoutSeconds: 1
+                periodSeconds: 10
+                successThreshold: 1
+                failureThreshold: 3
+  - apiVersion: v1
+    kind: DeploymentConfig
     metadata:
       namespace: nsolid
       labels:
@@ -72,13 +112,13 @@ items:
             app: nginx-secure-proxy
         spec:
           containers:
-          - image: nginx
+          - image: nodesource/nsolid-nginx:stable
             imagePullPolicy: Always
             name: nginx-secure-proxy
             ports:
-            - containerPort: 80
+            - containerPort: 10080
               protocol: TCP
-            - containerPort: 443
+            - containerPort: 10443
               protocol: TCP
             - containerPort: 8080
               protocol: TCP

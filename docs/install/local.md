@@ -2,69 +2,51 @@
 
 ### Prerequisites
 
-### VM
+### Docker
 
-One of the following should be installed:
+You must have Docker installed for your platform:
 
-* [Virtualbox](https://www.virtualbox.org/wiki/Downloads)
-* [VMWare Fusion](https://www.vmware.com/products/fusion)
+* [Docker](https://docs.docker.com/engine/installation/linux/)
+* [Docker for Mac](https://docs.docker.com/engine/installation/mac/)
+* [Docker for Windows](https://docs.docker.com/engine/installation/windows/)
 
-#### kubectl
+#### oc
 
-Install the proper version of `kubectl` for your environment.  kubectl is used to interact with a running
-Kubernetes cluster.
+Install the proper version of `oc` for your environment.  oc is used to interact with a running
+OpenShift cluster.
+
+[OpenShift Origin Releases](https://github.com/openshift/origin/releases/tag/v1.3.1)
+
+#### Starting OpenShift Origin
+
+Once you have the `oc` client locally, you can use it to start a local OpenShift cluster on your development machine.
 
 ```bash
-# linux/amd64
-curl -Lo kubectl http://storage.googleapis.com/kubernetes-release/release/v1.3.0/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-# linux/386
-curl -Lo kubectl http://storage.googleapis.com/kubernetes-release/release/v1.3.0/bin/linux/386/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-# linux/arm
-curl -Lo kubectl http://storage.googleapis.com/kubernetes-release/release/v1.3.0/bin/linux/arm/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-# linux/arm64
-curl -Lo kubectl http://storage.googleapis.com/kubernetes-release/release/v1.3.0/bin/linux/arm64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-#linux/ppc64le
-curl -Lo kubectl http://storage.googleapis.com/kubernetes-release/release/v1.3.0/bin/linux/ppc64le/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-# OS X/amd64
-curl -Lo kubectl http://storage.googleapis.com/kubernetes-release/release/v1.3.0/bin/darwin/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-# OS X/386
-curl -Lo kubectl http://storage.googleapis.com/kubernetes-release/release/v1.3.0/bin/darwin/386/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+oc cluster up --version=v1.3.1
 ```
 
-#### minikube
+### OpenShift Dashboard
 
-Install the proper build of minikube for your environment.  minikube manages a local kubernetes
-instance on your development machine.
+Once the OpenShift cluster is up, you will see the URL for the Dashboard along with the credentials to use.
 
 ```bash
-# OS X
-curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.6.0/minikube-darwin-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+   OpenShift server started.
+   The server is accessible via web console at:
+       https://x.x.x.x:8443
 
-#Linux
-curl -Lo minikube https://storage.googleapis.com/minikube/releases/v0.6.0/minikube-linux-amd64 && chmod +x minikube && sudo mv minikube /usr/local/bin/
+   You are logged in as:
+       User:     developer
+       Password: developer
+
+   To login as administrator:
+       oc login -u system:admin
 ```
 
-### Start minikube
+It is recommended to run `oc login -u system:admin` after the cluster is setup so that you have the proper permissions
+to create a new project.
+
+### Stopping OpenShift
 
 ```bash
-minikube start
-```
-
-We recommend configuring your Docker CLI to use the minikube Docker daemon so that
-builds are automatically synced to your Kubernetes cluster.
-
-```bash
-eval $(minikube docker-env)
-```
-
-### Kubernetes Dashboard
-
-```bash
-minikube dashboard
-```
-
-### Stopping minikube
-
-```bash
-minikube stop
+oc cluster down
 ```

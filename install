@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
-kubectl create -f conf/nsolid.namespace.yml
-kubectl create secret generic nginx-tls --from-file=conf/certs --namespace=nsolid
-kubectl create configmap nginx-config --from-file=conf/nginx --namespace=nsolid
-kubectl create -f conf/nsolid.services.yml
-kubectl create -f conf/nsolid.quickstart.yml --record
+set -e
+
+oc new-project nsolid --description="N|Solid Console and Storage" --display-name="N|Solid"
+oc create secret generic nginx-tls --from-file=conf/certs --namespace=nsolid
+oc create configmap nginx-config --from-file=conf/nginx --namespace=nsolid
+oc create -f conf/nsolid.services.yml
+oc create -f conf/nsolid.quickstart.yml --record
+oc create route passthrough nsolid-console --service nginx-secure-proxy --port=10443

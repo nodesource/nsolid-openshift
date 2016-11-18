@@ -1,13 +1,13 @@
-+[![NSolid, Docker, and Kubernetes](docs/images/container-banner.jpg)](https://nodesource.com/products/nsolid)
++[![NSolid, Docker, and OpenShift](docs/images/container-banner.jpg)](https://nodesource.com/products/nsolid)
 
 ## Overview
 
-This repository is for deploying [N|Solid](https://nodesource.com/products/nsolid) with [Kubernetes](http://kubernetes.io/). It assumes that Kubernetes is already setup for your environment.
+This repository is for deploying [N|Solid](https://nodesource.com/products/nsolid) with [OpenShift](http://openshift.com/). It assumes that OpenShift is already setup for your environment.
 
-![NSolid, Docker, and Kubernetes](docs/images/kubernetes-cluster.png)
+![NSolid, Docker, and OpenShift](docs/images/kubernetes-cluster.png)
 
 ### Table of Contents
-- [Installing kubernetes](#a1)
+- [Installing OpenShift Origin](#a1)
 - [Quickstart](#a2)
     - [Access N|Solid Dashboard](#a3)
     - [Uninstall N|Solid](#a4)
@@ -19,15 +19,13 @@ This repository is for deploying [N|Solid](https://nodesource.com/products/nsoli
     - [Secret object for certs](#a10)
     - [Configmap object for settings](#a11)
     - [Define Services](#a12)
-    - [GCE persistent disks](#a13)
-    - [AWS persistent disks](#a14)
 - [Debugging / Troubleshooting](#a15)
-    - [Configuring Apps for N|Solid with kubernetes](#a16)
+    - [Configuring Apps for N|Solid with OpenShift](#a16)
         - [Buiding an N|Solid app](#a17)
             - [Docker](#a18)
-            - [Kubernetes](#a19)
+            - [OpenShift](#a19)
         - [Accessing your App](#a20)
-    - [Accessing N|Solid kubernetes objects](#a21)
+    - [Accessing N|Solid OpenShift objects](#a21)
         - [Setting `nsolid` as the default namespace](#a22)
     - [Running `nsolid-cli`](#a23)
     - [minikube](#a24)
@@ -37,68 +35,77 @@ This repository is for deploying [N|Solid](https://nodesource.com/products/nsoli
 - [License & Copyright](#a28)
 
 <a name="a1"/>
-## Installing kubernetes
+## Installing OpenShift
 
-* [local with minikube](./docs/install/local.md) - for local development / testing.
-* [kubernetes on GKE](./docs/install/GKE.md) - Google Container Enginer
-* [kubernetes on aws](http://kubernetes.io/docs/getting-started-guides/aws/) - Amazon Web Services
-* [kubernetes on GCE](http://kubernetes.io/docs/getting-started-guides/gce/) - Google Compute Engine
-* [kubernetes on Azure](http://kubernetes.io/docs/getting-started-guides/coreos/azure/) - Microsoft Azure (Weave-based)
-* [kubernetes on Azure](http://kubernetes.io/docs/getting-started-guides/azure/) - Microsoft Azure (Flannel-based)
+* [local with OpenShift Origin](./docs/install/local.md) - for local development / testing.
+* [OpenShift Online](http://openshift.com/) - RedHat OpenShift Online
 
 <a name="a2"/>
 ## Quickstart
 
-Make sure your `kubectl` is pointing to your active cluster.
+Make sure your `oc` is pointing to your active cluster, and you are logged in with admin rights.
 
 ```bash
 ./install
 ```
 
-This command will install the N|Solid Console, Hub, and a secure HTTPS proxy to the `nsolid` namespace.
+This command will install the N|Solid Console, the N|Solid Storage service, and a secure HTTPS proxy to the `nsolid` project.
 
-It can take a little while for Kubernetes to download the N|Solid Docker images.  You can verify
+It can take a little while for OpenShift to download the N|Solid Docker images.  You can verify
 that they are active by running:
 
-```
-kubectl --namespace=nsolid get pods
+```bash
+oc --namespace=nsolid get pods
 ```
 
-When all four pods (console, hub, nginx-secure-proxy, and registry) have a status of 'Running', you may continue to access the N|Solid Dashboard.
+When all three pods (console, storage, and nginx-secure-proxy) have a status of 'Running', you may
+continue to access the N|Solid Console.
 
 <a name="a3"/>
-### Access N|Solid Dashboard
+### Access N|Solid Console
 
 #### Secure credentials
 
 * Default username: `nsolid`
 * Default password: `demo`
 
-#### With `minikube`
+#### Get the console's URL
 
 ```bash
-printf "\nhttps://$(minikube ip):$(kubectl get svc nginx-secure-proxy --namespace=nsolid --output='jsonpath={.spec.ports[1].nodePort}')\n"
+oc describe routes nsolid-console
 ```
 
-or
+You'll get output similar to:
 
-#### Cloud Deployment:
+```bash 
+Name:		 nsolid-console
+Namespace:	 nsolid
+Created:	 7 minutes ago
+Labels:		 app=nginx-secure-proxy
+Annotations:	 openshift.io/host.generated=true
+Requested Host:	 nsolid-console-nsolid.10.1.10.16.xip.io
+		   exposed on router router 7 minutes ago
+Path:		 <none>
+TLS Termination: passthrough
+Insecure Policy: <none>
+Endpoint Port:	 10443
 
-```bash
-kubectl get svc nginx-secure-proxy --namespace=nsolid
+Service:	 nginx-secure-proxy
+Weight:		 100 (100%)
+Endpoints:	 x.x.x.x:10080, x.x.x.x:10443
 ```
 
-Open `EXTERNAL-IP`
+The URL is the `Requested Host` value. In this example it is https://nsolid-console-nsolid.10.1.10.16.xip.io
 
 **NOTE:** You will need to ignore the security warning on the self signed certificate to proceed.
 
 ![Welcome Screen](./docs/images/welcome.png)
 
 <a name="a4"/>
-### Uninstall N|Solid from kubernetes cluster
+### Uninstall N|Solid from OpenShift cluster
 
 ```bash
-kubectl delete ns nsolid --cascade
+oc delete ns nsolid --cascade
 ```
 
 <a name="a5"/>
@@ -109,11 +116,12 @@ kubectl delete ns nsolid --cascade
 ```bash
 cd sample-app
 docker build -t sample-app:v1 .
-kubectl create -f sample-app.service.yml
-kubectl create -f sample-app.deployment.yml
+oc new-project sample-app --description="A Sample App" --display-name="sample"
+oc create -f sample-app.service.yml
+oc create -f sample-app.deployment.yml
 ```
 
-**NOTE:** container image in `sample-app.deployment.yml` assumes `sample-app:v1` docker image. This will work if your using `minikube` and ran `eval $(minikube docker-env)`.
+**NOTE:** container image in `sample-app.deployment.yml` assumes `sample-app:v1` docker image. This will work if you're using OpenShift locally.
 
 If you are working in a cloud environment, you will need to push the sample-app to a public Docker registry
 like [Dockerhub](https://dockerhub.com) or [Quay.io](https://quay.io), and update the sample-app Deployment file.
@@ -122,13 +130,13 @@ like [Dockerhub](https://dockerhub.com) or [Quay.io](https://quay.io), and updat
 <a name="a6"/>
 ## Production Install
 
-**NOTE:** Assumes kubectl is configured and pointed at your kubernetes cluster properly.
+**NOTE:** Assumes oc is configured and pointed at your OpenShift cluster properly.
 
 <a name="a7"/>
-#### Create the namespace `nsolid` to help isolate and manage the N|Solid components.
+#### Create the `nsolid` project to help isolate and manage the N|Solid components.
 
 ```
-kubectl create -f conf/nsolid.namespace.yml
+oc new-project nsolid --description="N|Solid Console and Storage" --display-name="N|Solid"
 ```
 
 <a name="a8"/>
@@ -150,20 +158,20 @@ htpasswd -cb ./conf/nginx/htpasswd {username} {password}
 #### Create a `secret`  for certs to mount in nginx
 
 ```
-kubectl create secret generic nginx-tls --from-file=conf/certs --namespace=nsolid
+oc create secret generic nginx-tls --from-file=conf/certs --namespace=nsolid
 ```
 
 <a name="a11"/>
 #### Create `configmap` for nginx settings
 ```
-kubectl create configmap nginx-config --from-file=conf/nginx --namespace=nsolid
+oc create configmap nginx-config --from-file=conf/nginx --namespace=nsolid
 ```
 
 <a name="a12"/>
 #### Define the services
 
 ```bash
-kubectl create -f conf/nsolid.services.yml
+oc create -f conf/nsolid.services.yml
 ```
 
 #### Create persistent disks
@@ -172,50 +180,11 @@ N|Solid components require persistent storage.  Kubernetes does not (yet!)
 automatically handle provisioning of disks consistently across all cloud providers.
 As such, you will need to manually create the persistent volumes.
 
-<a name="a13"/>
-##### On Google Cloud
-
-Make sure the zone matches the zone you brought up your cluster in!
-
-```
-gcloud compute disks create --size 10GB nsolid-storage
-```
-
-<a name="a14"/>
-##### On AWS
-
-We need to create our disks and then update the volumeIds in conf/nsolid.persistent.aws.yml.
-
-Make sure the zone matches the zone you brought up your cluster in!
-
-```
-aws ec2 create-volume --availability-zone eu-west-1a --size 10 --volume-type gp2
-```
-
-
-#### Configure Kubernetes to utilize the newly created persistent volumes
-
-##### GCE
-```bash
-kubectl create -f conf/nsolid.persistent.gce.yml
-```
-
-##### AWS
-```bash
-kubectl create -f conf/nsolid.persistent.aws.yml
-```
-
-#### Deploy N|Solid components
-
-```bash
-kubectl create -f conf/nsolid.cloud.yml
-```
-
 <a name="a15"/>
 ## Debugging / Troubleshooting
 
 <a name="a16"/>
-### Configuring Apps for N|Solid with kubernetes
+### Configuring Apps for N|Solid with OpenShift
 
 <a name="a17"/>
 #### Buiding an N|Solid app
@@ -223,14 +192,23 @@ kubectl create -f conf/nsolid.cloud.yml
 <a name="a18"/>
 ##### Docker
 
-Make sure your docker image is build on top of `nodesource/nsolid:boron-2.0.1`.
+Make sure your docker image is build on top of an N|Solid image based on the correct version of Node.js for your project:
+
+Node.js v6 LTS - `nodesource/nsolid:boron-2.0.1`
 
 ```dockerfile
 FROM nodesource/nsolid:boron-2.0.1
 ```
 
+Node.js v4 LTS - `nodesource/nsolid:argon-2.0.1`
+
+```dockerfile
+FROM nodesource/nsolid:argon-2.0.1
+```
+
+
 <a name="a19"/>
-##### Kubernetes
+##### OpenShift
 
 When defining your application make sure the following `ENV` are set.
 
@@ -260,24 +238,24 @@ A comma seperate list of tags that can be used to filter processes in the N|Soli
 #### Accessing your App
 
 ```bash
-kubectl get svc {service-name}
+oc get svc {service-name}
 ```
 
 The `EXTERNAL-IP` will access the application.
 
 
 <a name="a21"/>
-### Accessing N|Solid kubernetes objects
+### Accessing N|Solid OpenShift objects
 
-Make sure you use the `--namespace=nsolid` flag on all `kubectl` commands.
+Make sure you use the `--namespace=nsolid` flag on all `oc` commands.
 
 <a name="a22"/>
 #### Setting `nsolid` as the default namespace
 
 ```bash
-kubectl config current-context // outputs current context
-kubectl config set-context {$context} --namespace=nsolid // make 'nsolid' the default namespace
-kubectl config set-context {$context} --namespace=default // revert to default
+oc config current-context // outputs current context
+oc config set-context {$context} --namespace=nsolid // make 'nsolid' the default namespace
+oc config set-context {$context} --namespace=default // revert to default
 ```
 
 <a name="a23"/>
@@ -286,7 +264,7 @@ kubectl config set-context {$context} --namespace=default // revert to default
 **Verify CLI**:
 
 ```bash
-kubectl exec {pod-name} -- nsolid-cli --hub=hub:80 ping
+oc exec {pod-name} -- nsolid-cli --hub=hub:80 ping
 ```
 
 See [N|Solid cli docs](https://docs.nodesource.com/nsolid/2.0/docs/using-the-cli) for more info.
@@ -342,4 +320,4 @@ export DOCKER_API_VERSION=1.23
 <a name="a28" />
 ## License & Copyright
 
-**nsolid-kubernetes** is Copyright (c) 2016 NodeSource and licensed under the MIT license. All rights not explicitly granted in the MIT license are reserved. See the included [LICENSE.md](LICENSE.md) file for more details.
+**nsolid-openshift* is Copyright (c) 2016 NodeSource and licensed under the MIT license. All rights not explicitly granted in the MIT license are reserved. See the included [LICENSE.md](LICENSE.md) file for more details.
