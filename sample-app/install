@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -e
+
+docker build -t sample-app:v1 .
+oc new-project sample-app --description="Sample Application" --display-name="Sample App"
+oc create -f sample-app.service.yml
+oc create -f sample-app.deployment.yml --record
+oc create -f sample-app.route.yml

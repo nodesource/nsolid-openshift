@@ -7,4 +7,6 @@ oc create secret generic nginx-tls --from-file=conf/certs --namespace=nsolid
 oc create configmap nginx-config --from-file=conf/nginx --namespace=nsolid
 oc create -f conf/nsolid.services.yml
 oc create -f conf/nsolid.quickstart.yml --record
-oc create route passthrough nsolid-console --service nginx-secure-proxy --port=10443
+oc create -f conf/nsolid.route.yml
+
+#oc create route passthrough nsolid-console --service nginx-secure-proxy --port=10443

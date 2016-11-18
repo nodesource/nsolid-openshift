@@ -1,10 +1,10 @@
-+[![NSolid, Docker, and OpenShift](docs/images/container-banner.jpg)](https://nodesource.com/products/nsolid)
+{N|Solid, Docker, and OpenShift logo}
 
 ## Overview
 
 This repository is for deploying [N|Solid](https://nodesource.com/products/nsolid) with [OpenShift](http://openshift.com/). It assumes that OpenShift is already setup for your environment.
 
-![NSolid, Docker, and OpenShift](docs/images/kubernetes-cluster.png)
+{N|Solid, Docker, and OpenShift diagram}
 
 ### Table of Contents
 - [Installing OpenShift Origin](#a1)
@@ -27,11 +27,6 @@ This repository is for deploying [N|Solid](https://nodesource.com/products/nsoli
         - [Accessing your App](#a20)
     - [Accessing N|Solid OpenShift objects](#a21)
         - [Setting `nsolid` as the default namespace](#a22)
-    - [Running `nsolid-cli`](#a23)
-    - [minikube](#a24)
-        - [Setting ENV for cluster](#a25)
-        - [Service Discovery](#a26)
-    - [Common Gotchas](#a27)
 - [License & Copyright](#a28)
 
 <a name="a1"/>
@@ -43,7 +38,7 @@ This repository is for deploying [N|Solid](https://nodesource.com/products/nsoli
 <a name="a2"/>
 ## Quickstart
 
-Make sure your `oc` is pointing to your active cluster, and you are logged in with admin rights.
+Make sure your `oc` is pointing to your active cluster and you are logged in with admin rights.
 
 ```bash
 ./install
@@ -55,7 +50,7 @@ It can take a little while for OpenShift to download the N|Solid Docker images. 
 that they are active by running:
 
 ```bash
-oc --namespace=nsolid get pods
+oc get pods
 ```
 
 When all three pods (console, storage, and nginx-secure-proxy) have a status of 'Running', you may
@@ -63,11 +58,6 @@ continue to access the N|Solid Console.
 
 <a name="a3"/>
 ### Access N|Solid Console
-
-#### Secure credentials
-
-* Default username: `nsolid`
-* Default password: `demo`
 
 #### Get the console's URL
 
@@ -95,9 +85,16 @@ Weight:		 100 (100%)
 Endpoints:	 x.x.x.x:10080, x.x.x.x:10443
 ```
 
-The URL is the `Requested Host` value. In this example it is https://nsolid-console-nsolid.10.1.10.16.xip.io
+The URL is the `Requested Host` value. In this example it is `https://nsolid-console-nsolid.10.1.10.16.xip.io`. It
+will be different on your local machine.
 
 **NOTE:** You will need to ignore the security warning on the self signed certificate to proceed.
+
+#### Secure credentials
+
+* Default username: `nsolid`
+* Default password: `demo`
+
 
 ![Welcome Screen](./docs/images/welcome.png)
 
@@ -115,17 +112,44 @@ oc delete ns nsolid --cascade
 
 ```bash
 cd sample-app
-docker build -t sample-app:v1 .
-oc new-project sample-app --description="A Sample App" --display-name="sample"
-oc create -f sample-app.service.yml
-oc create -f sample-app.deployment.yml
+./install
 ```
+
+This will build the sample app Docker container locally, and then create the `sample-app` project and services.
 
 **NOTE:** container image in `sample-app.deployment.yml` assumes `sample-app:v1` docker image. This will work if you're using OpenShift locally.
 
 If you are working in a cloud environment, you will need to push the sample-app to a public Docker registry
 like [Dockerhub](https://dockerhub.com) or [Quay.io](https://quay.io), and update the sample-app Deployment file.
 
+#### Get the sample app's URL
+
+```bash
+oc describe routes sample-app
+```
+
+You'll get output similar to:
+
+```bash 
+Name:			sample-app
+Namespace:		sample-app
+Created:		3 minutes ago
+Labels:			<none>
+Annotations:		openshift.io/host.generated=true
+Requested Host:		sample-app-sample-app.10.1.10.16.xip.io
+			  exposed on router router 3 minutes ago
+Path:			<none>
+TLS Termination:	<none>
+Insecure Policy:	<none>
+Endpoint Port:		<all endpoint ports>
+
+Service:	sample-app
+Weight:		100 (100%)
+Endpoints:	x.x.x.x:4444
+```
+
+The URL is the `Requested Host` value. In this example it is `http://sample-app-sample-app.10.1.10.16.xip.io`. It
+will be different on your local machine.
 
 <a name="a6"/>
 ## Production Install
@@ -176,7 +200,7 @@ oc create -f conf/nsolid.services.yml
 
 #### Create persistent disks
 
-N|Solid components require persistent storage.  Kubernetes does not (yet!)
+N|Solid components require persistent storage.  OpenShift does not (yet!)
 automatically handle provisioning of disks consistently across all cloud providers.
 As such, you will need to manually create the persistent volumes.
 
@@ -238,7 +262,7 @@ A comma seperate list of tags that can be used to filter processes in the N|Soli
 #### Accessing your App
 
 ```bash
-oc get svc {service-name}
+oc create route passthrough nsolid-console --service nginx-secure-proxy --port=10443
 ```
 
 The `EXTERNAL-IP` will access the application.
@@ -256,65 +280,6 @@ Make sure you use the `--namespace=nsolid` flag on all `oc` commands.
 oc config current-context // outputs current context
 oc config set-context {$context} --namespace=nsolid // make 'nsolid' the default namespace
 oc config set-context {$context} --namespace=default // revert to default
-```
-
-<a name="a23"/>
-### Running `nsolid-cli`
-
-**Verify CLI**:
-
-```bash
-oc exec {pod-name} -- nsolid-cli --hub=hub:80 ping
-```
-
-See [N|Solid cli docs](https://docs.nodesource.com/nsolid/2.0/docs/using-the-cli) for more info.
-
-
-<a name="a24"/>
-### minikube
-
-Minikube is a bit different then a normal kubernetes install. The DNS service isn't running so discovering is a bit more involved. IP addresses are not dynamically assigned, instead we must use the host ports the service is mapped to.
-
-<a name="a25"/>
-#### Setting ENV for cluster
-
-If your doing a lot of work with docker and minikube it is recommended that you run the following:
-
-```bash
-eval $(minikube docker-env)
-```
-
-<a name="a26"/>
-### Service discovery
-
-Get the kubernetes cluster ip address:
-
-```bash
-minikube ip
-```
-
-To get the service port:
-
-```bash
-kubectl get svc {$service-name} --output='jsonpath={.spec.ports[0].nodePort}'
-```
-
-**Note:** If your service exposes multiple ports you may want to examine with `--output='json'` instead.
-
-
-<a name="a27"/>
-### Common Gotchas
-
-If you get the following message when trying to run `docker build` or communicating with the kubernetes api.
-
-```bash
-Error response from daemon: client is newer than server (client API version: 1.24, server API version: 1.23)
-```
-
-Export the `DOCKER_API_VERSION` to match the server API version.
-
-```bash
-export DOCKER_API_VERSION=1.23
 ```
 
 <a name="a28" />

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Route
+metadata:
+  name: nsolid-console
+spec:
+  to:
+    kind: Service
+    name: nginx-secure-proxy
+  port:
+    targetPort: 10443
+  tls:
+    termination: passthrough

@@ -2,7 +2,7 @@
 
 ### Prerequisites
 
-### Docker
+#### Docker
 
 You must have Docker installed for your platform:
 
@@ -10,7 +10,7 @@ You must have Docker installed for your platform:
 * [Docker for Mac](https://docs.docker.com/engine/installation/mac/)
 * [Docker for Windows](https://docs.docker.com/engine/installation/windows/)
 
-#### oc
+#### The oc command line tool
 
 Install the proper version of `oc` for your environment.  oc is used to interact with a running
 OpenShift cluster.
@@ -44,6 +44,14 @@ Once the OpenShift cluster is up, you will see the URL for the Dashboard along w
 
 It is recommended to run `oc login -u system:admin` after the cluster is setup so that you have the proper permissions
 to create a new project.
+
+### Permissions after creating a new project
+
+When new projects are created, the `developer` account needs to be granted rights to see it in the Dashboard.
+
+```bash
+oc policy add-role-to-user admin developer -n {projectname}
+```
 
 ### Stopping OpenShift
 
