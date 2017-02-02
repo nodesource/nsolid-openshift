@@ -24,7 +24,7 @@ spec:
             - name: NSOLID_BULK
               value: "storage.nsolid:9003"
             - name: NSOLID_TAGS
-              value: "nsolid-v2.0.0"
+              value: "nsolid-v2.1.2"
             - name: PORT
               value: "4444"
           ports:

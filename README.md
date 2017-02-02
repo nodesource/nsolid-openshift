@@ -217,16 +217,16 @@ As such, you will need to manually create the persistent volumes.
 
 Make sure your docker image is build on top of an N|Solid image based on the correct version of Node.js for your project:
 
-Node.js v6 LTS - `nodesource/nsolid:boron-2.0.1`
+Node.js v6 LTS - `nodesource/nsolid:boron-2.1.2`
 
 ```dockerfile
-FROM nodesource/nsolid:boron-2.0.1
+FROM nodesource/nsolid:boron-2.1.2
 ```
 
-Node.js v4 LTS - `nodesource/nsolid:argon-2.0.1`
+Node.js v4 LTS - `nodesource/nsolid:argon-2.1.2`
 
 ```dockerfile
-FROM nodesource/nsolid:argon-2.0.1
+FROM nodesource/nsolid:argon-2.1.2
 ```
 
 
@@ -252,7 +252,7 @@ Optional flags:
 ```yaml
   env:
     - name: NSOLID_TAGS
-      value: "nsolid-boron-v2.0.1,staging"
+      value: "nsolid-boron-v2.1.2,staging"
 ```
 
 A comma seperate list of tags that can be used to filter processes in the N|Solid console.
