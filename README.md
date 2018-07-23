@@ -29,12 +29,14 @@ This repository is for deploying [N|Solid](https://nodesource.com/products/nsoli
 - [License & Copyright](#a28)
 
 <a name="a1"/>
+
 ## Installing OpenShift
 
 * [local with OpenShift Origin](./docs/install/local.md) - for local development / testing.
 * [OpenShift Online](http://openshift.com/) - RedHat OpenShift Online
 
 <a name="a2"/>
+
 ## Quickstart
 
 Make sure your `oc` is pointing to your active cluster and you are logged in with admin rights.
@@ -56,6 +58,7 @@ When all three pods (console, storage, and nginx-secure-proxy) have a status of 
 continue to access the N|Solid Console.
 
 <a name="a3"/>
+
 ### Access N|Solid Console
 
 #### Get the console's URL
@@ -98,6 +101,7 @@ will be different on your local machine.
 ![Welcome Screen](./docs/images/welcome.png)
 
 <a name="a4"/>
+
 ### Uninstall N|Solid from OpenShift cluster
 
 ```bash
@@ -105,6 +109,7 @@ oc delete ns nsolid --cascade
 ```
 
 <a name="a5"/>
+
 ## Deploy Sample App with N|Solid
 
 ### Quick Start
@@ -151,11 +156,13 @@ The URL is the `Requested Host` value. In this example it is `http://sample-app-
 will be different on your local machine.
 
 <a name="a6"/>
+
 ## Production Install
 
-**NOTE:** Assumes oc is configured and pointed at your OpenShift cluster properly.
+**NOTE:** Assumes `oc` is configured and pointed at your OpenShift cluster properly.
 
 <a name="a7"/>
+
 #### Create the `nsolid` project to help isolate and manage the N|Solid components.
 
 ```
@@ -163,6 +170,7 @@ oc new-project nsolid --description="N|Solid Console and Storage" --display-name
 ```
 
 <a name="a8"/>
+
 #### Create nginx SSL certificates
 
 ```
@@ -170,6 +178,7 @@ openssl req -x509 -nodes -newkey rsa:2048 -keyout conf/certs/nsolid-nginx.key -o
 ```
 
 <a name="a9"/>
+
 #### Create Basic Auth file
 
 ```
@@ -178,6 +187,7 @@ htpasswd -cb ./conf/nginx/htpasswd {username} {password}
 ```
 
 <a name="a10"/>
+
 #### Create a `secret`  for certs to mount in nginx
 
 ```
@@ -185,12 +195,14 @@ oc create secret generic nginx-tls --from-file=conf/certs --namespace=nsolid
 ```
 
 <a name="a11"/>
+
 #### Create `configmap` for nginx settings
 ```
 oc create configmap nginx-config --from-file=conf/nginx --namespace=nsolid
 ```
 
 <a name="a12"/>
+
 #### Define the services
 
 ```bash
@@ -204,33 +216,30 @@ automatically handle provisioning of disks consistently across all cloud provide
 As such, you will need to manually create the persistent volumes.
 
 <a name="a15"/>
+
 ## Debugging / Troubleshooting
 
 <a name="a16"/>
+
 ### Configuring Apps for N|Solid with OpenShift
 
 <a name="a17"/>
+
 #### Buiding an N|Solid app
 
 <a name="a18"/>
+
 ##### Docker
 
 Make sure your docker image is build on top of an N|Solid image based on the correct version of Node.js for your project:
 
-Node.js v6 LTS - `nodesource/nsolid:boron-2.1.2`
-
 ```dockerfile
-FROM nodesource/nsolid:boron-2.1.2
-```
-
-Node.js v4 LTS - `nodesource/nsolid:argon-2.1.2`
-
-```dockerfile
-FROM nodesource/nsolid:argon-2.1.2
+FROM nodesource/nsolid:carbon-latest
 ```
 
 
 <a name="a19"/>
+
 ##### OpenShift
 
 When defining your application make sure the following `ENV` are set.
@@ -252,12 +261,13 @@ Optional flags:
 ```yaml
   env:
     - name: NSOLID_TAGS
-      value: "nsolid-boron-v2.1.2,staging"
+      value: "nsolid-carbon,staging"
 ```
 
 A comma seperate list of tags that can be used to filter processes in the N|Solid console.
 
 <a name="a20"/>
+
 #### Accessing your App
 
 To access your application outside of the OpenShift cluster, you must create a route to your application.
@@ -265,6 +275,7 @@ You can refer to the `sample-app.route.yml` file as an example for creating it v
 console to create the route manaully. 
 
 <a name="a21"/>
+
 ### Accessing N|Solid object in OpenShift
 
 After creating the sample app project, your context is switched to that project. You must switch
@@ -275,6 +286,7 @@ oc project nsolid
 ```
 
 <a name="a28" />
+
 ## License & Copyright
 
 **nsolid-openshift* is Copyright (c) 2016 NodeSource and licensed under the MIT license. All rights not explicitly granted in the MIT license are reserved. See the included [LICENSE.md](LICENSE.md) file for more details.
