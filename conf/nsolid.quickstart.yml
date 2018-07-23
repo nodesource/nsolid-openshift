@@ -1,66 +1,13 @@
-apiVersion: v1
-kind: List
+apiVersion: extensions/v1beta1
+kind: DeploymentList
 items:
-  - apiVersion: v1
-    kind: DeploymentConfig
+  - apiVersion: extensions/v1beta1
+    kind: Deployment
     metadata:
       namespace: nsolid
-      labels:
-        app: storage
-      name: storage
-    spec:
-      replicas: 1
-      template:
-        metadata:
-          labels:
-            app: storage
-        spec:
-          containers:
-          - image: nodesource/nsolid-storage:boron-2.1.2
-            name: storage
-            env:
-            - name: NSOLID_STORAGE_NOTIFICATION_CONSOLE_URL
-              value: http://console:3000
-            - name: NSOLID_STORAGE_DATA_DIR
-              value: /var/lib/nsolid/storage/data
-            - name: NSOLID_STORAGE_LOGS_INFLUX
-              value: /var/lib/nsolid/storage/influxdb.log
-            ports:
-            - containerPort: 4000
-              name: api
-            - containerPort: 9001
-              name: command
-            - containerPort: 9002
-              name: data
-            - containerPort: 9003
-              name: bulk
-            readinessProbe:
-              httpGet:
-                path: /api/v1/license-info
-                port: 4000
-                scheme: HTTPS
-              initialDelaySeconds: 4
-              timeoutSeconds: 1
-              periodSeconds: 10
-              successThreshold: 1
-              failureThreshold: 3
-            livenessProbe:
-              httpGet:
-                path: /api/v1/license-info
-                port: 4000
-                scheme: HTTPS
-              initialDelaySeconds: 10
-              timeoutSeconds: 1
-              periodSeconds: 10
-              successThreshold: 1
-              failureThreshold: 3
-  - apiVersion: v1
-    kind: DeploymentConfig
-    metadata:
-      namespace: nsolid
-      name: console
       labels:
         app: console
+      name: console
     spec:
       replicas: 1
       template:
@@ -69,36 +16,24 @@ items:
             app: console
         spec:
           containers:
-            - name: console
-              image: nodesource/nsolid-console:boron-2.1.2
-              env:
-              - name: NSOLID_CONSOLE_STORAGE_URL
-                value: https://storage:4000
-              ports:
-                - containerPort: 3000
-                  name: console
-              readinessProbe:
-                httpGet:
-                  path: /
-                  port: 3000
-                  scheme: HTTP
-                initialDelaySeconds: 1
-                timeoutSeconds: 1
-                periodSeconds: 10
-                successThreshold: 1
-                failureThreshold: 3
-              livenessProbe:
-                httpGet:
-                  path: /
-                  port: 3000
-                  scheme: HTTP
-                initialDelaySeconds: 1
-                timeoutSeconds: 1
-                periodSeconds: 10
-                successThreshold: 1
-                failureThreshold: 3
-  - apiVersion: v1
-    kind: DeploymentConfig
+          - image: nodesource/nsolid-console:carbon-latest
+            name: console
+            env:
+            - name: NSOLID_CONSOLE_DATA_DIR
+              value: /var/lib/nsolid/console/data
+            - name: NSOLID_CONSOLE_LOGS_INFLUX
+              value: /var/lib/nsolid/console/influxdb.log
+            ports:
+            - containerPort: 9001
+              name: command
+            - containerPort: 9002
+              name: data
+            - containerPort: 9003
+              name: bulk
+            - containerPort: 6753
+              name: console
+  - apiVersion: extensions/v1beta1
+    kind: Deployment
     metadata:
       namespace: nsolid
       labels:
